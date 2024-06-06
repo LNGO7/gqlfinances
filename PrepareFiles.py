@@ -74,7 +74,7 @@ def uloz_do_excelu(dataframe, excel_soubor):
         for c_idx, value in enumerate(row, 1):
             line_ws.cell(row=r_idx, column=c_idx, value=value)
 
-    # Create the line chart in Excel
+    # Vytvoř linkový graf do excelu
     line_chart = LineChart()
     line_chart.title = "Timeline projektu"
     line_chart.y_axis.title = "Datum"
