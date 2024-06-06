@@ -20,8 +20,8 @@ def add_additional_data(json_file):
             "project": {
                 "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bc",
                 "name": "Nukleární reaktor pro budovy 2",
-                "startdate": "2023-01-01T17:27:12",
-                "enddate": "2025-12-31T17:27:12",
+                "startdate": "2021-01-01T17:27:12",
+                "enddate": "2022-12-31T17:27:12",
                 "valid": True,
                 "team": {
                     "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120004",
@@ -45,8 +45,8 @@ def add_additional_data(json_file):
             "project": {
                 "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bd",
                 "name": "Nukleární reaktor pro budovy 3",
-                "startdate": "2023-01-01T17:27:12",
-                "enddate": "2025-12-31T17:27:12",
+                "startdate": "2026-01-01T17:27:12",
+                "enddate": "2027-03-20T17:27:12",
                 "valid": True,
                 "team": {
                     "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120005",
@@ -70,8 +70,8 @@ def add_additional_data(json_file):
             "project": {
                 "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243be",
                 "name": "Nukleární reaktor pro budovy 4",
-                "startdate": "2023-01-01T17:27:12",
-                "enddate": "2025-12-31T17:27:12",
+                "startdate": "2024-01-01T17:27:12",
+                "enddate": "2024-11-29T17:27:12",
                 "valid": True,
                 "team": {
                     "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120006",

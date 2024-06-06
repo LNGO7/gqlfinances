@@ -52,7 +52,7 @@ def uloz_do_excelu(dataframe, excel_soubor):
     kolac.title = "Analýza financí - Koláčový graf"
     ws.add_chart(kolac, "G1")
 
-    # Create the line chart data
+    # lajny pro datum
     line_ws = wb.create_sheet(title="Line Chart Data")
 
     # Prepare data for line chart including nested project data
@@ -76,9 +76,9 @@ def uloz_do_excelu(dataframe, excel_soubor):
 
     # Create the line chart in Excel
     line_chart = LineChart()
-    line_chart.title = "Project Timeline"
-    line_chart.y_axis.title = "Project Name"
-    line_chart.x_axis.title = "Date"
+    line_chart.title = "Timeline projektu"
+    line_chart.y_axis.title = "Datum"
+    line_chart.x_axis.title = "Zacatek/konec"
 
     for index, row in line_df.iterrows():
         series = Series(values=Reference(line_ws, min_col=3, min_row=index+2, max_col=4, max_row=index+2),
