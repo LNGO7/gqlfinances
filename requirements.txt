@@ -1,5 +1,5 @@
 #pip install -r requirements.txt
-
+kaleido
 requests
 beautifulsoup4
 json5

@@ -1,5 +1,7 @@
 import json
+import os
 import pandas as pd
+os.environ["PLOTLYJS"] = "/usr/lib/python3/dist-packages/plotly/package_data/plotly.min.js"
 import openpyxl
 from openpyxl.chart import PieChart, Reference
 from openpyxl.utils.dataframe import dataframe_to_rows  
