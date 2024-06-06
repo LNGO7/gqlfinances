@@ -1,9 +1,8 @@
 import json
 import os
 import pandas as pd
-os.environ["PLOTLYJS"] = "/usr/lib/python3/dist-packages/plotly/package_data/plotly.min.js"
 import openpyxl
-from openpyxl.chart import PieChart, Reference
+from openpyxl.chart import PieChart, LineChart, Reference, Series
 from openpyxl.utils.dataframe import dataframe_to_rows  
 import plotly.express as px
 
@@ -52,6 +51,41 @@ def uloz_do_excelu(dataframe, excel_soubor):
     kolac.set_categories(popisky)
     kolac.title = "Analýza financí - Koláčový graf"
     ws.add_chart(kolac, "G1")
+
+    # Create the line chart data
+    line_ws = wb.create_sheet(title="Line Chart Data")
+
+    # Prepare data for line chart including nested project data
+    line_data = [
+        (
+            item['Název'], 
+            item['Název projektu'], 
+            item['Datum zahájení'], 
+            item['Datum ukončení']
+        ) for index, item in dataframe.iterrows() 
+        if item['Název projektu'] and item['Datum zahájení'] and item['Datum ukončení']
+    ]
+
+    line_df = pd.DataFrame(line_data, columns=['FinanceName', 'ProjectName', 'Startdate', 'Enddate'])
+    line_df['Startdate'] = pd.to_datetime(line_df['Startdate'])
+    line_df['Enddate'] = pd.to_datetime(line_df['Enddate'])
+
+    for r_idx, row in enumerate(dataframe_to_rows(line_df, index=False, header=True), 1):
+        for c_idx, value in enumerate(row, 1):
+            line_ws.cell(row=r_idx, column=c_idx, value=value)
+
+    # Create the line chart in Excel
+    line_chart = LineChart()
+    line_chart.title = "Project Timeline"
+    line_chart.y_axis.title = "Project Name"
+    line_chart.x_axis.title = "Date"
+
+    for index, row in line_df.iterrows():
+        series = Series(values=Reference(line_ws, min_col=3, min_row=index+2, max_col=4, max_row=index+2),
+                        title=row['ProjectName'])
+        line_chart.series.append(series)
+
+    line_ws.add_chart(line_chart, "E2")
 
     # Vytvoř Sunburst graf
     sunburst_graf = px.sunburst(dataframe, path=['Typ financí', 'Název projektu'], values='Částka', title='Analýza financí - Sunburst graf')
