@@ -13,7 +13,6 @@ def nacti_json_soubor(soubor):
 
 def preved_json_na_dataframe(data):
     """Převede data z JSON na DataFrame."""
-    finance_stranky = data['data']['financePage']
     zpracovana_data = {
         'ID': [],
         'Název': [],
@@ -24,14 +23,14 @@ def preved_json_na_dataframe(data):
         'Datum ukončení': []
     }
 
-    for stranka in finance_stranky:
+    for stranka in data:
         zpracovana_data['ID'].append(stranka['id'])
         zpracovana_data['Název'].append(stranka['name'])
         zpracovana_data['Částka'].append(stranka['amount'])
-        zpracovana_data['Typ financí'].append(stranka['financeType'][0]['name'])
-        zpracovana_data['Název projektu'].append(stranka['project']['name'])
-        zpracovana_data['Datum zahájení'].append(stranka['project']['startdate'])
-        zpracovana_data['Datum ukončení'].append(stranka['project']['enddate'])
+        zpracovana_data['Typ financí'].append(stranka['financeTypeName'])
+        zpracovana_data['Název projektu'].append(stranka['projectName'])
+        zpracovana_data['Datum zahájení'].append(stranka['projectStartDate'])
+        zpracovana_data['Datum ukončení'].append(stranka['projectEndDate'])
 
     return pd.DataFrame(zpracovana_data)
 
@@ -87,12 +86,29 @@ def uloz_do_excelu(dataframe, excel_soubor):
 
     line_ws.add_chart(line_chart, "E2")
 
-    # Vytvoř Sunburst graf
-    sunburst_graf = px.sunburst(dataframe, path=['Typ financí', 'Název projektu'], values='Částka', title='Analýza financí - Sunburst graf')
+    # Prepare data for Sunburst chart
+    sunburst_ws = wb.create_sheet(title="Sunburst Chart Data")
+
+    sunburst_data = [
+        (
+            item['Typ financí'],
+            item['Název projektu'],
+            item['Částka']
+        ) for index, item in dataframe.iterrows()
+    ]
+
+    sunburst_df = pd.DataFrame(sunburst_data, columns=['FinanceType', 'ProjectName', 'Amount'])
+
+    for r_idx, row in enumerate(dataframe_to_rows(sunburst_df, index=False, header=True), 1):
+        for c_idx, value in enumerate(row, 1):
+            sunburst_ws.cell(row=r_idx, column=c_idx, value=value)
+
+    # Create Sunburst chart and add it to the new sheet
+    sunburst_graf = px.sunburst(sunburst_df, path=['FinanceType', 'ProjectName'], values='Amount', title='Analýza financí - Sunburst graf')
     sunburst_graf.update_traces(textinfo='label+percent entry')
     sunburst_graf.write_image("sunburst_graf.png")
     obrazek = openpyxl.drawing.image.Image("sunburst_graf.png")
-    ws.add_image(obrazek, 'G10')
+    sunburst_ws.add_image(obrazek, 'A1')
 
     wb.save(excel_soubor)
 

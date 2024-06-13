@@ -1,9 +1,8 @@
 import json
 import os
 
-# Funkce pro přidání dodatečných dat do stávajícího JSON souboru
 def add_additional_data(json_file):
-    # Definice nových dat
+    # Pridame data pro lepsi ukazku grafu
     additional_data = [
         {
             "id": "f911230f-7e1f-4e9b-90a9-b921996ceb88",
@@ -11,23 +10,14 @@ def add_additional_data(json_file):
             "amount": 200000,
             "valid": False,
             "lastchange": "2024-06-07T13:41:14.491289",
-            "financeType": [
-                {
-                    "id": "9e37059c-de2c-4112-9009-559c8b0396f2",
-                    "name": "firemní náklady"
-                }
-            ],
-            "project": {
-                "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bc",
-                "name": "Nukleární reaktor pro budovy 2",
-                "startdate": "2021-01-01T17:27:12",
-                "enddate": "2022-12-31T17:27:12",
-                "valid": True,
-                "team": {
-                    "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120004",
-                    "name": "Uni 2"
-                }
-            },
+            "financeTypeName": "firemní náklady",
+            "projectID": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bc",
+            "projectName": "Nukleární reaktor pro budovy 2",
+            "projectStartDate": "2021-01-01T17:27:12",
+            "projectEndDate": "2022-12-31T17:27:12",
+            "projectValid": True,
+            "teamID": "2d9dcd22-a4a2-11ed-b9df-0242ac120004",
+            "teamName": "Uni 2",
             "changedby": None
         },
         {
@@ -36,23 +26,14 @@ def add_additional_data(json_file):
             "amount": 300000,
             "valid": True,
             "lastchange": "2024-06-08T13:41:14.491289",
-            "financeType": [
-                {
-                    "id": "9e37059c-de2c-4112-9009-559c8b0396f3",
-                    "name": "dopravní náklady"
-                }
-            ],
-            "project": {
-                "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bd",
-                "name": "Nukleární reaktor pro budovy 3",
-                "startdate": "2026-01-01T17:27:12",
-                "enddate": "2027-03-20T17:27:12",
-                "valid": True,
-                "team": {
-                    "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120005",
-                    "name": "Uni 3"
-                }
-            },
+            "financeTypeName": "dopravní náklady",
+            "projectID": "43dd2ff1-5c17-42a5-ba36-8b30e2a243bd",
+            "projectName": "Nukleární reaktor pro budovy 3",
+            "projectStartDate": "2026-01-01T17:27:12",
+            "projectEndDate": "2027-03-20T17:27:12",
+            "projectValid": True,
+            "teamID": "2d9dcd22-a4a2-11ed-b9df-0242ac120005",
+            "teamName": "Uni 3",
             "changedby": None
         },
         {
@@ -61,50 +42,36 @@ def add_additional_data(json_file):
             "amount": 400000,
             "valid": True,
             "lastchange": "2024-06-09T13:41:14.491289",
-            "financeType": [
-                {
-                    "id": "9e37059c-de2c-4112-9009-559c8b0396f4",
-                    "name": "technické náklady"
-                }
-            ],
-            "project": {
-                "id": "43dd2ff1-5c17-42a5-ba36-8b30e2a243be",
-                "name": "Nukleární reaktor pro budovy 4",
-                "startdate": "2024-01-01T17:27:12",
-                "enddate": "2024-11-29T17:27:12",
-                "valid": True,
-                "team": {
-                    "id": "2d9dcd22-a4a2-11ed-b9df-0242ac120006",
-                    "name": "Uni 4"
-                }
-            },
+            "financeTypeName": "technické náklady",
+            "projectID": "43dd2ff1-5c17-42a5-ba36-8b30e2a243be",
+            "projectName": "Nukleární reaktor pro budovy 4",
+            "projectStartDate": "2024-01-01T17:27:12",
+            "projectEndDate": "2024-11-29T17:27:12",
+            "projectValid": True,
+            "teamID": "2d9dcd22-a4a2-11ed-b9df-0242ac120006",
+            "teamName": "Uni 4",
             "changedby": None
         }
     ]
 
-    # Načtení stávajících dat ze souboru
     with open(json_file, 'r') as file:
         data = json.load(file)
 
-    # Přidání nových dat do seznamu "financePage"
-    data["data"]["financePage"].extend(additional_data)
+    if isinstance(data, dict):  # Zajistime, aby jsme pracovali s listem
+        data = [data]
+    data.extend(additional_data)
 
-    # Uložení aktualizovaných dat zpět do souboru
     with open(json_file, 'w') as file:
         json.dump(data, file, indent=4)
 
-# Hlavní funkce pro spuštění skriptu
 def main():
-    # Nastavení cesty k souboru finance_analysis.json
+    # Cesta k souboru
     json_file = "finance_analysis.json"
-
-    # Pokud soubor existuje, přidej do něj dodatečná data
     if os.path.exists(json_file):
         add_additional_data(json_file)
-        print("Dodatečná data byla úspěšně přidána.")
+        print("Additional data successfully added.")
     else:
-        print("Soubor finance_analysis.json neexistuje.")
+        print("File finance_analysis.json does not exist.")
 
-# Spuštění hlavní funkce
 if __name__ == "__main__":
     main()

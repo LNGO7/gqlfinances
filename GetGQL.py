@@ -1,105 +1,128 @@
-import requests
-from bs4 import BeautifulSoup
+import asyncio
+import aiohttp
+import pandas as pd
 import json
+import AddMoreData as custom_data
+import PrepareFiles as graph
 
-def login_and_get_session():
-    login_url = "http://localhost:33001/oauth/login2?redirect_uri=/"
+async def getToken(username, password):
+    keyurl = "http://localhost:33001/oauth/login3"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(keyurl) as resp:
+            if resp.status != 200:
+                raise Exception(f"Failed to get key: {resp.status}")
+            keyJson = await resp.json()
 
-    # Načtení přihlašovací stránky
-    response = requests.get(login_url)
-    if response.status_code != 200:
-        print("Nepodařilo se načíst přihlašovací stránku")
-        return None
+        payload = {"key": keyJson["key"], "username": username, "password": password}
+        async with session.post(keyurl, json=payload) as resp:
+            if resp.status != 200:
+                raise Exception(f"Failed to get token: {resp.status}")
+            tokenJson = await resp.json()
 
-    # Extrakce hodnoty 'key' ze stránky
-    soup = BeautifulSoup(response.text, 'html.parser')
-    key_input = soup.find('input', {'name': 'key'})
-    if not key_input:
-        print("Nepodařilo se najít 'key' ve formuláři")
-        return None
+    return tokenJson.get("token", None)
 
-    key = key_input['value']
+def query(q, token):
+    async def post(variables):
+        gqlurl = "http://localhost:33001/api/gql"
+        payload = {"query": q, "variables": variables}
+        cookies = {'authorization': token}
 
-    # Přihlašovací údaje
-    data = {
-        "username": "nora.newbie@world.com",
-        "password": "nora.newbie@world.com",
-        "key": key
+        async with aiohttp.ClientSession() as session:
+            async with session.post(gqlurl, json=payload, cookies=cookies) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Query failed: {resp.status} - {text}")
+                return await resp.json()
+    return post
+
+username = "john.newbie@world.com"
+password = "john.newbie@world.com"
+queryStr = """
+query FinanceAnalysis {
+  financePage {
+    id
+    name
+    amount
+    valid
+    lastchange
+    financeType {
+      id
+      name
     }
-
-    # Odeslání POST požadavku s přihlašovacími údaji
-    session = requests.Session()
-    response = session.post(login_url, data=data)
-    if response.status_code == 200:
-        print("Přihlášení bylo úspěšné")
-        return session
-    else:
-        print(f"Přihlášení selhalo: {response.status_code} - {response.text}")
-        return None
-
-def fetch_finance_analysis_data(session):
-    # Nastavení URL GraphQL endpointu
-    graphql_url = "http://localhost:33001/api/gql"
-
-    # Definice dotazu GraphQL
-    query = """
-    query FinanceAnalysis {
-        financePage {
-            id
-            name
-            amount
-            valid
-            lastchange
-            financeType {
-                id
-                name
-            }
-            project {
-                id
-                name
-                startdate
-                enddate
-                valid
-                team {
-                    id
-                    name
-                }
-            }
-            changedby {
-                id
-                name
-            }
-        }
+    project {
+      id
+      name
+      startdate
+      enddate
+      valid
+      team {
+        id
+        name
+      }
     }
-    """
-
-    # Hlavičky pro GraphQL požadavek
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
+    changedby {
+      id
+      name
     }
+  }
+}
+"""
+def transform_gql_to_json(gql_query):
+    sourceTable = []
 
-    # Odeslání dotazu
-    response = session.post(graphql_url, json={'query': query}, headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Chyba při odesílání dotazu: {response.status_code} - {response.text}")
-        return None
+    for finance_item in gql_query["financePage"]:
+        row = {}
+        row["id"] = finance_item["id"]
+        row["name"] = finance_item["name"]
+        row["amount"] = finance_item["amount"]
+        row["valid"] = finance_item["valid"]
+        row["lastchange"] = finance_item["lastchange"]
+        row["financeTypeName"] = finance_item["financeType"][0]["name"]
+        row["projectID"] = finance_item["project"]["id"]
+        row["projectName"] = finance_item["project"]["name"]
+        row["projectStartDate"] = finance_item["project"]["startdate"]
+        row["projectEndDate"] = finance_item["project"]["enddate"]
+        row["projectValid"] = finance_item["project"]["valid"]
+        row["teamID"] = finance_item["project"]["team"]["id"]
+        row["teamName"] = finance_item["project"]["team"]["name"]
+        row["changedby"] = finance_item.get("changedby")  # Ensure changedby exists
+        
+        sourceTable.append(row)
 
-def save_data_to_json(data, filename):
-    with open(filename, 'w') as file:
-        json.dump(data, file, indent=4)
+    return sourceTable
 
-def main():
-    session = login_and_get_session()
-    if session:
-        data = fetch_finance_analysis_data(session)
-        if data:
-            save_data_to_json(data, 'finance_analysis.json')
-            print("Data byla uložena do finance_analysis.json")
-        else:
-            print("Nepodařilo se získat data")
+async def fullPipe():
+    token = await getToken(username, password)
+    qfunc = query(queryStr, token)
+    response = await qfunc({})
 
-if __name__ == "__main__":
-    main()
+    data = response.get("data")
+    if not data:
+        raise ValueError("No data found in the response.")
+    
+    # Use the transform_gql_to_json function to transform the data
+    transformed_data = transform_gql_to_json(data)
+    
+    # Convert to pandas DataFrame
+    pandasData = pd.DataFrame(transformed_data)
+    return pandasData
+
+# Run the full pipeline asynchronously
+if __name__ == "__main__":    
+    loop = asyncio.get_event_loop()
+    try:
+        pandasData = loop.run_until_complete(fullPipe())
+        print(pandasData)
+        pandasData.to_json('finance_analysis.json', orient='records', lines=True)
+        try:
+            custom_data.main()
+        except Exception as e:
+            print("Pri pridavani vlastnich dat doslo k chybe v:")
+            print(e)
+        try:
+            graph.main()
+        except Exception as e:
+            print("Pri grafovani doslo k chybe v:")
+            print(e)
+    except Exception as e:
+        print(f"An error occurred: {e}")
