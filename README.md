@@ -6,10 +6,6 @@
 2. Run AddMoreData.py -> not required but essential to see how the graphs works
 3. Run PrepareFiles.py -> to create xls file with graphs
 
-## Automation
-For Windows, run run_windows.bat -> it will run all the scripts without the need of running them one by one
-For Linux, run run_linux.sh -> -> it will run all the scripts without the need of running them one by one
-
 # What does it do? 
 
 ## GetGQL.py
