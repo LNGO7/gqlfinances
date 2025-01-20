@@ -44,4 +44,7 @@
    - Saves the DataFrame to an Excel file.
    - Adds a pie chart and a sunburst chart to the Excel file.
 
+## __init__.py
+   -  Prepared init file from hrbolek/analysis for matching provided query strings, and flattening functionality
+
 
